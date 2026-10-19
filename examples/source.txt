@@ -1,0 +1,1 @@
+Hàm VLOOKUP trong Excel tra cứu giá trị ở cột đầu của vùng bảng và trả về giá trị tại cột được chỉ định trên cùng một hàng. Khi tra mã hàng, dùng FALSE để đối sánh chính xác. Nên cố định vùng bảng bằng địa chỉ tuyệt đối trước khi sao chép công thức. Nếu mã không tồn tại, hàm trả về lỗi #N/A.

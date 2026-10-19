@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vieneu-video-studio"
+version = "0.1.0"
+description = "Vietnamese script → VieNeu speech → responsive motion-graphic video"
+requires-python = ">=3.10,<3.14"
+dependencies = [
+  "Pillow>=10.4,<13", "numpy>=1.26,<3", "pydantic>=2.8,<3",
+  "httpx>=0.27,<1", "python-dotenv>=1,<2", "trafilatura>=2,<3"
+]
+
+[project.optional-dependencies]
+tts = ["vieneu==3.8.3"]
+ui = ["streamlit>=1.40,<2"]
+dev = ["pytest>=8,<10"]
+
+[project.scripts]
+video-studio = "studio.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["studio*"]
+
+[tool.setuptools.package-data]
+studio = ["assets/*.ttf", "assets/*.txt"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

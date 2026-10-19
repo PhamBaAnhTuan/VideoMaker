@@ -1,0 +1,104 @@
+{
+  "version": "1.0",
+  "title": "VLOOKUP cho người mới bắt đầu",
+  "channel": "LỚP HỌC EXCEL",
+  "source": "Kịch bản minh họa tự soạn",
+  "scenes": [
+    {
+      "id": "hook",
+      "layout": "hook",
+      "title": "Tìm tên hàng trong vài giây",
+      "subtitle": "Tra cứu dữ liệu với VLOOKUP",
+      "narration": [
+        {
+          "text": "Bạn có mã sản phẩm, nhưng cần tìm nhanh tên hàng?",
+          "caption": "Có mã sản phẩm, tìm tên hàng thế nào?"
+        },
+        {
+          "text": "Hãy dùng hàm vi lốc áp trong Excel.",
+          "caption": "Dùng hàm VLOOKUP trong Excel."
+        }
+      ]
+    },
+    {
+      "id": "compare",
+      "layout": "comparison",
+      "title": "Hai cách tìm dữ liệu",
+      "left": {
+        "label": "Tìm thủ công",
+        "value": "Dò từng dòng"
+      },
+      "right": {
+        "label": "Dùng công thức",
+        "value": "Tra theo mã"
+      },
+      "narration": [
+        {
+          "text": "Dò từng dòng dễ mất thời gian và có thể nhầm lẫn.",
+          "caption": "Dò từng dòng dễ mất thời gian và nhầm lẫn."
+        },
+        {
+          "text": "Công thức giúp lấy kết quả từ mã cần tìm.",
+          "caption": "Công thức trả kết quả theo mã cần tìm."
+        }
+      ]
+    },
+    {
+      "id": "steps",
+      "layout": "feature-list",
+      "title": "Chuẩn bị trước khi tra cứu",
+      "bullets": [
+        "Mã hàng nằm ở cột đầu",
+        "Chọn vùng bảng tra",
+        "Xác định cột kết quả"
+      ],
+      "narration": [
+        {
+          "text": "Đặt mã hàng ở cột đầu của vùng bảng tra.",
+          "caption": "Mã hàng nằm ở cột đầu của vùng bảng tra."
+        },
+        {
+          "text": "Sau đó xác định cột chứa tên sản phẩm cần lấy.",
+          "caption": "Xác định cột chứa tên sản phẩm."
+        }
+      ]
+    },
+    {
+      "id": "stat",
+      "layout": "stat-hero",
+      "title": "Tra cứu chính xác",
+      "value": "FALSE",
+      "subtitle": "Chọn đối sánh chính xác khi tìm mã hàng",
+      "narration": [
+        {
+          "text": "Khi tìm theo mã hàng, hãy chọn chế độ đối sánh chính xác.",
+          "caption": "Tra cứu mã hàng: chọn đối sánh chính xác."
+        }
+      ]
+    },
+    {
+      "id": "note",
+      "layout": "callout",
+      "title": "Cố định vùng bảng tra",
+      "subtitle": "Dùng địa chỉ tuyệt đối trước khi sao chép công thức",
+      "narration": [
+        {
+          "text": "Cố định vùng bảng tra để vùng dữ liệu không bị trượt khi sao chép.",
+          "caption": "Cố định vùng bảng tra trước khi sao chép."
+        }
+      ]
+    },
+    {
+      "id": "outro",
+      "layout": "outro",
+      "title": "Thử với bảng dữ liệu của bạn",
+      "subtitle": "Một mã hàng → Một kết quả tra cứu",
+      "narration": [
+        {
+          "text": "Hãy thử nhập một mã hàng và kiểm tra tên sản phẩm trả về.",
+          "caption": "Nhập mã hàng và kiểm tra kết quả."
+        }
+      ]
+    }
+  ]
+}
