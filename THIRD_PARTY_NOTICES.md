@@ -17,7 +17,13 @@ Các phần được chọn để chuyển thể:
 
 Đây là bản chuyển thể viết lại bằng Python. Không sao chép nguyên cây thư mục, không nhúng Node, HyperFrames, GSAP, quảng bá kênh TikTok, kho SFX hay bộ cấu hình AI Agent của upstream. CSS/HTML upstream không phải dependency runtime. Thiết kế, số đo responsive, chữ, phụ đề, cache theo nội dung, UI và LLM adapter được viết mới cho dự án này. Bộ hiệu ứng không được tuyên bố giống hoàn toàn repo gốc.
 
-## VieNeu-TTS
+## remotion-cuongit-template (tham khảo ý tưởng)
+
+Nguồn: https://github.com/Cuongyd196/remotion-cuongit-template
+
+Tham khảo cách trình bày nội dung ở trung tâm, sơ đồ quy trình từng bước, chuyển động spring theo thứ tự và nền ánh sáng. Bộ bố cục `workflow`/`quote`, hiệu ứng và các preset trong dự án này được viết mới bằng Python/Pillow; không sao chép mã React/Remotion, âm thanh, hình ảnh hay thương hiệu của repo. Không thêm Remotion làm dependency và không tuyên bố tương đương toàn bộ template.
+
+## VieNeu-TTS SDK
 
 Nguồn: https://github.com/pnnbao97/VieNeu-TTS
 

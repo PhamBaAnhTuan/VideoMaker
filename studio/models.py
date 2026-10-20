@@ -23,7 +23,9 @@ class Comparison(StrictModel):
 
 class Scene(StrictModel):
     id: str = Field(pattern=r"^[a-zA-Z0-9_-]{1,40}$")
-    layout: Literal["hook", "comparison", "stat-hero", "feature-list", "callout", "outro"]
+    layout: Literal["hook", "comparison", "stat-hero", "feature-list", "callout", "outro", "workflow", "quote"]
+    animation: Literal["auto", "fade", "slide", "spring", "wipe", "typewriter"] = "auto"
+    transition: Literal["auto", "cut", "fade", "slide", "wipe"] = "auto"
     title: str = Field(min_length=1, max_length=90)
     subtitle: str = Field(default="", max_length=160)
     bullets: list[str] = Field(default_factory=list, max_length=4)
@@ -46,8 +48,8 @@ class Scene(StrictModel):
             raise ValueError("comparison cần cả left và right.")
         if self.layout == "stat-hero" and not self.value:
             raise ValueError("stat-hero cần value.")
-        if self.layout == "feature-list" and not self.bullets:
-            raise ValueError("feature-list cần bullets.")
+        if self.layout in ("feature-list", "workflow") and not self.bullets:
+            raise ValueError(f"{self.layout} cần bullets.")
         return self
 
 
@@ -90,6 +92,7 @@ class RenderOptions(StrictModel):
     height: int = Field(default=1280, ge=240, le=3840)
     fps: int = Field(default=24, ge=1, le=60)
     theme: Literal["dark", "light"] = "dark"
+    visual_style: Literal["studio", "neon", "editorial", "playful"] = "studio"
     subtitles: bool = True
     scene_gap: float = Field(default=0.3, ge=0, le=3)
     outro_hold: float = Field(default=1.5, ge=0, le=10)

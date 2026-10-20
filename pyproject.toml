@@ -14,7 +14,7 @@ dependencies = [
 
 [project.optional-dependencies]
 tts = ["vieneu==3.8.3"]
-ui = ["streamlit>=1.40,<2"]
+ui = ["streamlit>=1.50,<2"]
 dev = ["pytest>=8,<10"]
 
 [project.scripts]

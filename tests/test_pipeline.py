@@ -65,7 +65,8 @@ def test_llm_repair_path_and_authoritative_metadata(script,monkeypatch):
             calls.append(kwargs)
             return Response()
     monkeypatch.setattr(httpx,"Client",Client)
-    result=generate_script("Nguồn tham khảo",scene_count=6,channel="Kênh của tôi",source_label="source.txt")
+    result=generate_script("Nguồn tham khảo",scene_count=6,channel="Kênh của tôi",source_label="source.txt",
+                           base_url="http://localhost:11434/v1",model="test-model",api_key="")
     assert len(calls)==2
     assert result.channel=="Kênh của tôi"
     assert result.source=="source.txt"
@@ -117,7 +118,7 @@ def test_audio_timeline_and_resume(script,tmp_path):
     script.scenes[0].narration[0].text+=" Thay đổi."
     make_audio(script,options,tmp_path,engine,lambda _:None)
     assert engine.calls==calls+1
-    assert "-->" in (tmp_path/"subtitles.srt").read_text()
+    assert "-->" in (tmp_path/"subtitles.srt").read_text(encoding="utf-8")
     assert srt_time(59.9996)=="00:01:00,000"
 
 
@@ -130,7 +131,7 @@ def test_real_ffmpeg_end_to_end_all_ratios(script,tmp_path,size):
     info=json.loads(subprocess.check_output(["ffprobe","-v","error","-show_streams","-show_format","-of","json",str(result)]))
     video=next(s for s in info["streams"] if s["codec_type"]=="video")
     audio=next(s for s in info["streams"] if s["codec_type"]=="audio")
-    timeline=json.loads((tmp_path/"timeline.json").read_text())
+    timeline=json.loads((tmp_path/"timeline.json").read_text(encoding="utf-8"))
     assert (video["width"],video["height"])==(w,h)
     assert video["codec_name"]=="h264" and audio["codec_name"]=="aac"
     assert int(video["nb_frames"])==timeline["frames"]

@@ -1,0 +1,3 @@
+﻿# Use Python 3.10-3.13 (recommended: 3.12).
+# Keep application dependencies in pyproject.toml as the single source of truth.
+-e .[tts,ui]

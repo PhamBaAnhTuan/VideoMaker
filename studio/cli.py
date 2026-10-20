@@ -18,6 +18,8 @@ from .audio import DemoTone, TtsSettings, VieNeuSpeech
 from .models import Script, RenderOptions, parse_size
 from .pipeline import build
 from .writer import read_source, generate_script
+from .llm import LlmSettings
+from .media_tools import resolve_media_tool
 
 
 def add_source(parser):
@@ -37,6 +39,7 @@ def add_render(parser):
     parser.add_argument("--size", default="9:16", help="9:16 | 16:9 | 1:1 | 4:5 | 1920x1080")
     parser.add_argument("--fps", type=int, default=24)
     parser.add_argument("--theme", choices=["dark","light"], default="dark")
+    parser.add_argument("--visual-style", choices=["studio", "neon", "editorial", "playful"], default="studio")
     parser.add_argument("--no-subtitles", action="store_true")
     parser.add_argument("--no-sfx", action="store_true")
     parser.add_argument("--bgm", help="Nhạc nền trên máy")
@@ -48,7 +51,7 @@ def add_render(parser):
 
 def options_from_args(args):
     width,height = parse_size(args.size)
-    return RenderOptions(width=width,height=height,fps=args.fps,theme=args.theme,
+    return RenderOptions(width=width,height=height,fps=args.fps,theme=args.theme,visual_style=args.visual_style,
                          subtitles=not args.no_subtitles,sfx=not args.no_sfx,bgm=args.bgm,
                          bgm_volume=args.bgm_volume,font=args.font)
 
@@ -104,13 +107,19 @@ def main(argv=None):
         if args.command == "doctor":
             print(f"Python {sys.version.split()[0]}")
             for tool,var in (("ffmpeg","FFMPEG_BIN"),("ffprobe","FFPROBE_BIN")):
-                print(f"{tool}: {shutil.which(os.getenv(var,tool)) or 'THIẾU'}")
+                try:
+                    print(f"{tool}: {resolve_media_tool(tool)}")
+                except RuntimeError as exc:
+                    print(str(exc))
             for package in ("vieneu","Pillow","streamlit","httpx"):
                 try:
                     print(f"{package}: {importlib.metadata.version(package)}")
                 except importlib.metadata.PackageNotFoundError:
                     print(f"{package}: chưa cài")
-            print(f"LLM model: {os.getenv('LLM_MODEL','command-a-plus-05-2026')} (chưa kiểm tra kết nối)")
+            llm = LlmSettings.resolve()
+            print(f"LLM URL: {llm.base_url}")
+            print(f"LLM model: {llm.model} (chưa kiểm tra kết nối)")
+            print(f"LLM API key: {'đã cấu hình' if llm.api_key else 'chưa cấu hình'}")
             return 0
         if args.command == "voices":
             for label,voice_id in VieNeuSpeech(TtsSettings.from_env()).voices():

@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 import httpx
 from dotenv import load_dotenv
 from .models import Script
+from .llm import LlmSettings
 
 load_dotenv()
 
@@ -74,7 +75,7 @@ def parse_response(content: str) -> Script:
     elif isinstance(data, dict) and "scenes" not in data and ("layout" in data or "type" in data or "narration" in data or "voiceText" in data):
         data = {"version": "1.0", "title": data.get("title", "Video"), "scenes": [data]}
 
-    valid_scene_keys = {"id", "layout", "title", "subtitle", "bullets", "value", "left", "right", "narration", "image"}
+    valid_scene_keys = {"id", "layout", "title", "subtitle", "bullets", "value", "left", "right", "narration", "image", "animation", "transition"}
 
     # Chuẩn hoá layout và trường nếu model chọn sai hoặc thiếu trường
     if isinstance(data, dict) and "scenes" in data and isinstance(data["scenes"], list):
@@ -112,11 +113,11 @@ def parse_response(content: str) -> Script:
                     layout = sc.get("layout")
                     if layout == "stat-hero" and not sc.get("value"):
                         sc["layout"] = "callout"
-                    elif layout == "feature-list" and not sc.get("bullets"):
+                    elif layout in ("feature-list", "workflow") and not sc.get("bullets"):
                         sc["layout"] = "callout"
                     elif layout == "comparison" and not (sc.get("left") and sc.get("right")):
                         sc["layout"] = "callout"
-                    elif layout not in ("hook", "comparison", "stat-hero", "feature-list", "callout", "outro"):
+                    elif layout not in ("hook", "comparison", "stat-hero", "feature-list", "callout", "outro", "workflow", "quote"):
                         sc["layout"] = "callout"
 
                     # Xóa các trường lạ ngoài schema để tránh lỗi StrictModel extra_forbidden
@@ -141,12 +142,12 @@ def generate_script(source: str, *, mode: str = "source", seconds: int = 60,
         raise ValueError("mode phải là source hoặc topic.")
     if not 3 <= scene_count <= 12 or not 15 <= seconds <= 600:
         raise ValueError("Chọn 3–12 cảnh, thời lượng mục tiêu 15–600 giây.")
-    base = (base_url or os.getenv("LLM_BASE_URL", "https://api.cohere.ai/compatibility/v1")).rstrip("/")
-    model = model or os.getenv("LLM_MODEL", "command-a-plus-05-2026")
-    key = api_key if api_key is not None else (os.getenv("LLM_API_KEY") or os.getenv("COHERE_API_KEY", ""))
-    
-    if not key and "cohere" in base.lower():
-        raise ValueError("Chưa thiết lập LLM_API_KEY. Vui lòng nhập API Key Cohere trong .env hoặc giao diện.")
+    settings = LlmSettings.resolve(base_url=base_url, model=model, api_key=api_key)
+    base, model, key = settings.base_url, settings.model, settings.api_key
+    if settings.is_google and not key:
+        raise ValueError("Chưa có Gemini API key. Lấy key tại https://aistudio.google.com/apikey, điền GEMINI_API_KEY trong .env rồi khởi động lại ứng dụng.")
+    if not model:
+        raise ValueError("Chưa có LLM_MODEL. Điền tên model của nhà cung cấp trong .env rồi khởi động lại ứng dụng.")
 
     if urlparse(base).scheme not in ("http", "https"):
         raise ValueError("LLM_BASE_URL phải là URL HTTP/HTTPS, kết thúc bằng /v1 nếu server dùng /v1.")
@@ -169,7 +170,9 @@ Dữ liệu nội dung nguồn đã được cung cấp sẵn ở phần tin nh�
 
 [CẤU TRÚC KỊCH BẢN YÊU CẦU CHO VIDEO NÀY]
 - Viết đúng {scene_count} cảnh, cảnh đầu BẮT BUỘC layout 'hook', cảnh cuối BẮT BUỘC layout 'outro'.
-- Các cảnh thân bài dùng đa dạng: 'feature-list' (1–4 bullets), 'comparison' (cần left/right), 'stat-hero' (cần value số liệu ấn tượng), 'callout'.
+- Các cảnh thân bài dùng đa dạng: 'feature-list' (1–4 bullets), 'comparison' (cần left/right), 'stat-hero' (cần value số liệu có nguồn), 'callout', 'workflow' (2–4 bước ngắn trong bullets), 'quote' (title là ý chính, subtitle là ngữ cảnh; chỉ dùng trích dẫn thật nếu nguồn có).
+- Chọn animation phù hợp từng cảnh: 'spring' (nảy), 'slide' (trượt), 'wipe' (mở dần), 'typewriter' (hiện chữ), 'fade' hoặc 'auto'. Không lặp một animation suốt video.
+- transition: 'fade', 'slide', 'wipe', 'cut' hoặc 'auto'. Ưu tiên 'auto' khi chưa chắc.
 - Trong mỗi cảnh, mảng narration gồm các câu dạng {{"text": "...", "caption": "..."}}:
   * `caption`: Chữ hiển thị trên màn hình — giữ nguyên định dạng số/ký hiệu chuẩn đẹp mắt (ví dụ: 'GPT 5.5', '82.7%', '$5', 'VLOOKUP').
   * `text`: Lời đọc để VieNeu-TTS phát âm — BẮT BUỘC phiên âm sang chữ tiếng Việt theo đúng quy tắc phát âm TTS trong Skill ở trên. Kết thúc mỗi câu bằng dấu chấm '.' hoặc hỏi chấm '?'.
@@ -192,14 +195,14 @@ JSON schema: {schema}"""
                 response.raise_for_status()
                 content = response.json()["choices"][0]["message"]["content"]
             except httpx.HTTPStatusError as exc:
-                if exc.response.status_code == 401:
-                    raise RuntimeError("Lỗi xác thực (401 Unauthorized): API Key của Cohere không đúng hoặc đã hết hạn.") from exc
+                if exc.response.status_code in (401, 403):
+                    raise RuntimeError(f"LLM trả HTTP {exc.response.status_code}: kiểm tra API key, quyền truy cập API và model.") from exc
                 if exc.response.status_code == 429:
-                    raise RuntimeError("Lỗi giới hạn (429 Rate Limit): API Cohere đã vượt quá số lượng request cho phép.") from exc
+                    raise RuntimeError("LLM trả HTTP 429: hết quota hoặc vượt giới hạn gọi API. Kiểm tra hạn mức của API key và thử lại sau.") from exc
                 raise RuntimeError(f"LLM trả HTTP {exc.response.status_code}. Kiểm tra model ({model}), key và LLM_JSON_MODE.") from exc
             except httpx.RequestError as exc:
                 raise RuntimeError("Không kết nối được LLM. Kiểm tra server, URL và timeout trong .env.") from exc
-            except (KeyError, IndexError, TypeError) as exc:
+            except (KeyError, IndexError, TypeError, ValueError) as exc:
                 raise RuntimeError("Server LLM không trả cấu trúc chat/completions mong đợi.") from exc
             try:
                 script = parse_response(content)

@@ -1,4 +1,21 @@
-# Báo cáo kiểm thử — 19/10/2026
+# Báo cáo kiểm thử
+
+## Cập nhật giao diện và hiệu ứng — 20/10/2026
+
+Windows, Python 3.12.13, VieNeu 3.8.3, Streamlit 1.66.0, FFmpeg/FFprobe trên máy hiện tại.
+
+`python -X utf8 -m pytest -q -p no:cacheprovider --basetemp=output/test-final-temp`: **63 passed**.
+
+- Tám bố cục mẫu được dựng ở bốn tỷ lệ, hai giao diện và bốn phong cách; kiểm tra cả thời điểm giữa animation.
+- AppTest kiểm tra sidebar gọn, không có ô API/model/thiết bị, chọn giọng và nghe thử qua giả lập, nạp script mẫu, đổi phong cách.
+- Cache nghe thử phân biệt giọng và tái sử dụng WAV. Đã chạy thêm VieNeu v3turbo/CPU thật với model có sẵn và `HF_HUB_OFFLINE=1`, tạo WAV 453.164 byte. Không dùng âm thử để thay thế lời nói ở nút nghe thử.
+- AppTest kiểm tra player với MP4 thật: không exception, không cảnh báo xem trước.
+- `output/demo-neon/video.mp4`: script mới đủ tám cảnh, 320×568, 12 FPS, 332 frame, H.264/AAC. FFprobe xác nhận cả audio và video dài 27,666667 giây. Demo này dùng âm thử, có nhãn trên video.
+- Đã kiểm tra bằng mắt `docs/preview-styles.jpg`; có thêm `docs/preview-layouts.jpg` và `docs/preview-motion.gif` để đối chiếu.
+
+Chưa gọi LLM thật hoặc thử GPU trong lần cập nhật này. Kết quả dưới đây là lịch sử kiểm thử bản trước.
+
+## Lịch sử — 19/10/2026
 
 ## Kết quả đã xác nhận
 

@@ -10,8 +10,8 @@ Dự án độc lập, không cần clone hai repo gốc. Giữ sáu kiểu cả
 - AI viết JSON bằng server tương thích `chat/completions`: Ollama chạy local hoặc API do bạn cấu hình.
 - Giao diện tiếng Việt: xem/sửa JSON trước khi render; có tùy chọn chạy tự động cả quy trình.
 - SDK **VieNeu 3.8.3**, v3 Turbo (mặc định), v3 Nano tùy chọn; preset hoặc file giọng mẫu.
-- Sáu bố cục: `hook`, `comparison`, `stat-hero`, `feature-list`, `callout`, `outro`.
-- Chữ có hiệu ứng phóng, trượt, hiện dần; ảnh nền riêng từng cảnh với chuyển động chậm.
+- Tám bố cục: `hook`, `comparison`, `stat-hero`, `feature-list`, `workflow`, `quote`, `callout`, `outro`.
+- Bốn phong cách hình ảnh, chữ nảy/trượt/hiện dần, số đếm, chuyển cảnh và nền chuyển động; ảnh riêng từng cảnh nếu cần.
 - Khung dọc 9:16, ngang 16:9, vuông 1:1, 4:5 hoặc kích thước tự nhập.
 - Phụ đề ghi vào hình và file SRT, căn theo audio từng đoạn; không tô sáng từng từ.
 - Audio cache theo nội dung, giọng, model, phiên bản SDK và nội dung giọng mẫu.
@@ -65,7 +65,23 @@ Lệnh `python` trong các ví dụ bên dưới nghĩa là Python trong `.venv`
 
 ## 2. Cấu hình AI viết kịch bản
 
-### A. Ollama local
+### A. Google Gemini (mặc định)
+
+Sao chép `.env.example` thành `.env` nếu chưa có. Lấy **Gemini API key** tại [Google AI Studio](https://aistudio.google.com/apikey), rồi điền một giá trị:
+
+```dotenv
+GEMINI_API_KEY=your_gemini_api_key
+```
+
+Chạy `start-windows.bat`. Giao diện chỉ hiển thị liên kết lấy key; điền key trong `.env` và khởi động lại ứng dụng. URL mặc định là `https://generativelanguage.googleapis.com/v1beta/openai`, model mặc định là `gemini-3.8-flash`; để trống URL/model cũng dùng các giá trị này. Có thể đổi `LLM_MODEL` sang model Gemini mà key được phép dùng.
+
+Tích hợp dùng [endpoint tương thích OpenAI chính thức của Google](https://ai.google.dev/gemini-api/docs/openai), không cần thêm SDK. Với Google, thứ tự ưu tiên key môi trường là `GEMINI_API_KEY`, `GOOGLE_API_KEY`, rồi `LLM_API_KEY`.
+
+Nếu `.env` cũ trỏ tới Cohere hoặc dịch vụ khác, đổi `LLM_BASE_URL` và `LLM_MODEL` theo `.env.example`. API key phải thuộc đúng nhà cung cấp. Không đưa key thật vào Git; `.env` đã được bỏ qua, `.env.example` chỉ chứa mẫu cấu hình.
+
+HTTP 401/403: kiểm tra key và quyền truy cập model. HTTP 429: kiểm tra quota hoặc thử lại sau. Hạn mức và chi phí tùy tài khoản/model.
+
+### B. Ollama local
 
 Cài Ollama từ trang chính thức, chọn model mà máy đủ bộ nhớ. Ví dụ cấu hình đi kèm dùng `qwen3:8b`; có thể thay bằng model khác hỗ trợ tốt tiếng Việt và JSON.
 
@@ -85,9 +101,11 @@ LLM_JSON_MODE=true
 
 Tên model phải khớp model thực tế đã cài (`ollama list`). Không xem cấu hình mẫu là bảo đảm tốc độ trên mọi máy. Nếu thiếu RAM hoặc model trả JSON không ổn định, đổi model hoặc dùng API.
 
-### B. API tương thích
+### C. API tương thích khác
 
-Điền URL gốc, model và key của nhà cung cấp vào `.env` hoặc phần **AI viết kịch bản** trong giao diện. Chương trình nối `/chat/completions` vào URL gốc, vì vậy không điền cả đường dẫn endpoint này.
+Điền URL gốc, model và key của nhà cung cấp vào `.env`. Chương trình nối `/chat/completions` vào URL gốc, vì vậy không điền cả đường dẫn endpoint này.
+
+Với nhà cung cấp khác, dùng `LLM_API_KEY`. Gemini API key không tự động được gửi tới endpoint khác.
 
 Nếu server không hỗ trợ `response_format`, đặt `LLM_JSON_MODE=false`. Server phải hỗ trợ messages, temperature, max_tokens và trả `choices[0].message.content`. Đây là adapter giao thức chung; chưa xác nhận mọi nhà cung cấp đều tương thích.
 
@@ -134,14 +152,29 @@ python -m pip install transformers==4.57.6
 
 ## 4. Dùng giao diện
 
-1. Chọn tỷ lệ, FPS, giao diện tối/sáng, giọng đọc và phụ đề ở thanh bên.
+1. Chọn tỷ lệ, FPS, giao diện tối/sáng và giọng đọc ở thanh bên. Giọng có mô tả và nút **Nghe thử**; danh sách không cần tải model. Giao diện dùng cố định **v3turbo + CPU/ONNX**.
 2. Nhập nguồn hoặc chủ đề. Chọn số cảnh, thời lượng mục tiêu và cách trình bày.
 3. Bấm **AI viết kịch bản**. Có thể chọn tự tạo video ngay sau đó.
 4. Kiểm tra/chỉnh nội dung JSON, đặc biệt số liệu và cách đọc thuật ngữ. Chế độ chủ đề không tự tìm kiếm Internet để kiểm chứng kiến thức.
-5. Bấm **Tạo giọng đọc và render video**.
-6. Xem và tải MP4, SRT, WAV ngay trong giao diện.
+5. Chọn **Phong cách hình ảnh**: Studio, Neon Tech, Tạp chí hoặc Pop & Bounce. Chọn từng cảnh để xem bố cục và màu sắc. Phụ đề, SFX, nhạc nền và giọng mẫu nằm trong **Âm thanh & tùy chọn bổ sung**.
+6. Bấm **Tạo giọng đọc và render video**.
+7. Xem và tải MP4, SRT, WAV ngay trong giao diện. Video xem trước cao tối đa 520 px; file tải xuống vẫn giữ nguyên độ phân giải đã chọn.
 
 **Không có LLM vẫn dùng được:** bấm **Mở kịch bản Excel mẫu**, rồi tạo giọng/video. Đường này chỉ bỏ bước viết kịch bản; VieNeu thật vẫn chạy.
+
+**Script tham khảo đầy đủ:** [examples/script-mau.json](examples/script-mau.json), hướng dẫn tại [examples/HUONG-DAN-SCRIPT.md](examples/HUONG-DAN-SCRIPT.md). Có nút mở/tải mẫu ngay trong giao diện. Mẫu gồm tám bố cục, bao gồm `workflow` (quy trình) và `quote` (trích dẫn/ý chính), cùng các trường `animation`, `transition` có thể chỉnh cho từng cảnh. Các trường mới có mặc định nên script cũ vẫn chạy.
+
+Chuyển động bổ sung: spring, hiện chữ theo dòng, mở dần, nền quầng sáng/hạt/hình học, số liệu tăng dần và chuyển cảnh fade/slide/wipe. Thời gian audio và phụ đề được giữ nguyên khi chuyển cảnh. Tham khảo ý tưởng từ [remotion-cuongit-template](https://github.com/Cuongyd196/remotion-cuongit-template), viết lại bằng Pillow.
+
+Xem [bốn phong cách](docs/preview-styles.jpg), [tám bố cục](docs/preview-layouts.jpg) và [chuyển động mẫu](docs/preview-motion.gif).
+
+CLI cũng hỗ trợ `--visual-style studio|neon|editorial|playful`, ví dụ:
+
+```powershell
+.\.venv\Scripts\python.exe -m studio.cli demo examples/script-mau.json --visual-style neon --size 320x568 --fps 12 --out output/demo-neon
+```
+
+Lệnh `demo` dùng âm thử để kiểm tra hình ảnh, không phải giọng nói. Nút nghe thử giọng dùng VieNeu thật, có thể tải model lần đầu, sau đó lưu WAV trong `output/voice-previews`.
 
 Tên thư mục kết quả giúp quản lý phiên bản. Dùng cùng thư mục để giữ cache. Đổi tỷ lệ hoặc sửa chữ trên hình sẽ dùng lại các đoạn lời đọc không thay đổi. Sửa một đoạn lời đọc hoặc đổi giọng sẽ tạo cache khác. Trong một thư mục, lần build mới thay thế script, timeline và video khi thành công.
 
@@ -227,7 +260,7 @@ Ví dụ một cảnh (xem `examples/excel.json` để có file hoàn chỉnh):
 | `studio/writer.py` | Đọc nguồn, gọi LLM, sửa JSON lỗi một lần |
 | `studio/models.py` | Kiểm tra cấu trúc kịch bản và cấu hình |
 | `studio/audio.py` | VieNeu, cache, WAV, timeline và SRT |
-| `studio/renderer.py` | Sáu bố cục, chữ, animation, ảnh và FFmpeg |
+| `studio/renderer.py` | Tám bố cục, bốn phong cách, animation, chuyển cảnh, ảnh và FFmpeg |
 | `studio/pipeline.py` | Điều phối và bảo vệ thư mục đang render |
 | `examples/` | Kịch bản Excel và văn bản thử |
 | `tests/` | Kiểm tra cache, adapter, UI và xuất MP4 |

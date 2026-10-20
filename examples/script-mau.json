@@ -1,0 +1,82 @@
+{
+  "version": "1.0",
+  "title": "Từ ý tưởng đến video",
+  "channel": "Góc sáng tạo",
+  "source": "Kịch bản minh họa tự biên soạn; các con số mô tả cấu trúc của chính ví dụ này.",
+  "scenes": [
+    {
+      "id": "mo-dau",
+      "layout": "hook",
+      "animation": "spring",
+      "transition": "fade",
+      "title": "Ý tưởng nhỏ.\nCâu chuyện lớn.",
+      "subtitle": "Biến kiến thức thành video",
+      "narration": [{"text": "Bạn có một ý tưởng hay nhưng chưa biết bắt đầu từ đâu? Hãy thử biến nó thành một câu chuyện ngắn bằng hình ảnh và giọng đọc.", "caption": "Bắt đầu từ một ý tưởng"}]
+    },
+    {
+      "id": "quy-trinh",
+      "layout": "workflow",
+      "animation": "spring",
+      "transition": "slide",
+      "title": "Ba bước bắt đầu",
+      "bullets": ["Chọn một ý chính", "Viết lời kể ngắn", "Thêm hình & giọng"],
+      "narration": [{"text": "Đầu tiên, chọn một ý chính. Tiếp theo, viết lời kể thật ngắn. Cuối cùng, thêm hình ảnh và giọng đọc phù hợp.", "caption": "Ý chính → Lời kể → Video"}]
+    },
+    {
+      "id": "so-sanh",
+      "layout": "comparison",
+      "animation": "slide",
+      "transition": "wipe",
+      "title": "Kể thay vì chép",
+      "left": {"label": "Quá nhiều chữ", "value": "Khó theo dõi"},
+      "right": {"label": "Một ý mỗi cảnh", "value": "Dễ ghi nhớ"},
+      "narration": [{"text": "Đừng đưa cả đoạn văn lên màn hình. Hãy giữ một ý trong mỗi cảnh, để người xem vừa nghe vừa hiểu.", "caption": "Một ý rõ ràng trong mỗi cảnh"}]
+    },
+    {
+      "id": "con-so",
+      "layout": "stat-hero",
+      "animation": "spring",
+      "transition": "fade",
+      "title": "Thử đủ phong cách",
+      "value": "4",
+      "subtitle": "Studio · Neon · Tạp chí · Pop",
+      "narration": [{"text": "Ví dụ này có thể thử với bốn phong cách hình ảnh. Chọn tông gọn gàng, ánh sáng công nghệ, trang tạp chí, hoặc màu sắc vui tươi.", "caption": "Bốn phong cách để thử nghiệm"}]
+    },
+    {
+      "id": "nguyen-tac",
+      "layout": "feature-list",
+      "animation": "wipe",
+      "transition": "slide",
+      "title": "Giữ nhịp cho câu chuyện",
+      "bullets": ["Chữ ngắn, dễ đọc", "Mỗi cảnh một điểm nhấn", "Đọc lại trước khi xuất"],
+      "narration": [{"text": "Giữ chữ trên hình thật ngắn. Mỗi cảnh chỉ cần một điểm nhấn. Và luôn đọc lại kịch bản trước khi tạo giọng.", "caption": "Ngắn gọn, rõ ý và có nhịp"}]
+    },
+    {
+      "id": "trich-dan",
+      "layout": "quote",
+      "animation": "typewriter",
+      "transition": "fade",
+      "title": "Đơn giản để\nđược nhớ lâu.",
+      "subtitle": "Thông điệp của kịch bản mẫu",
+      "narration": [{"text": "Thông điệp của kịch bản này rất đơn giản. Hãy làm nội dung đủ rõ để người xem nhớ được điều bạn muốn kể.", "caption": "Đơn giản để được nhớ lâu"}]
+    },
+    {
+      "id": "nhac-nho",
+      "layout": "callout",
+      "animation": "fade",
+      "transition": "wipe",
+      "title": "Kiểm tra trước khi đăng",
+      "subtitle": "Lời đọc · Phụ đề · Thông tin",
+      "narration": [{"text": "Trước khi đăng video, hãy kiểm tra lại cách phát âm, phụ đề và tính chính xác của thông tin.", "caption": "Xem lại video trước khi đăng"}]
+    },
+    {
+      "id": "ket-thuc",
+      "layout": "outro",
+      "animation": "spring",
+      "transition": "fade",
+      "title": "Đến lượt bạn kể!",
+      "subtitle": "Sửa mẫu này để bắt đầu",
+      "narration": [{"text": "Bây giờ đến lượt bạn. Hãy sửa kịch bản mẫu này bằng ý tưởng riêng, chọn giọng đọc và tạo video đầu tiên.", "caption": "Bắt đầu câu chuyện của bạn"}]
+    }
+  ]
+}

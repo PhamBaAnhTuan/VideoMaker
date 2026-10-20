@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Callable
 import numpy as np
 from .models import Script, RenderOptions, json_write
+from .media_tools import resolve_media_tool
 
 SAMPLE_RATE = 48000
 
@@ -48,7 +49,7 @@ def read_wav(path: Path) -> np.ndarray:
 
 
 def normalize_wav(source: Path, destination: Path):
-    command([os.getenv("FFMPEG_BIN", "ffmpeg"), "-y", "-v", "error", "-i", str(source),
+    command([resolve_media_tool("ffmpeg"), "-y", "-v", "error", "-i", str(source),
              "-ac", "1", "-ar", str(SAMPLE_RATE), "-c:a", "pcm_s16le", str(destination)])
 
 
