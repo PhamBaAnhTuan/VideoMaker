@@ -93,6 +93,11 @@ class RenderOptions(StrictModel):
     fps: int = Field(default=24, ge=1, le=60)
     theme: Literal["dark", "light"] = "dark"
     visual_style: Literal["studio", "neon", "editorial", "playful"] = "studio"
+    
+    # --- THÊM TRƯỜNG TEMPLATE MỚI ---
+    template: Literal["modern", "cinematic", "neon_glitch", "minimal"] = "modern"
+    
+    
     subtitles: bool = True
     scene_gap: float = Field(default=0.3, ge=0, le=3)
     outro_hold: float = Field(default=1.5, ge=0, le=10)
@@ -114,6 +119,24 @@ class RenderOptions(StrictModel):
 
 def json_write(path: Path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
+    text = json.dumps(value, ensure_ascii=False, indent=2)
     temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2), encoding="utf-8")
-    temporary.replace(path)
+    temporary.write_text(text, encoding="utf-8")
+
+    # Retry vì trên Windows file có thể bị process khác (antivirus, reader) giữ khóa tạm thời
+    last_error = None
+    for attempt in range(10):
+        try:
+            os.replace(temporary, path)
+            return
+        except PermissionError as exc:
+            last_error = exc
+            time.sleep(0.1 * (attempt + 1))  # backoff: 0.1s, 0.2s, 0.3s, ...
+            continue
+
+    # Fallback: ghi trực tiếp (không atomic, nhưng tránh crash)
+    try:
+        path.write_text(text, encoding="utf-8")
+        temporary.unlink(missing_ok=True)
+    except OSError:
+        raise last_error

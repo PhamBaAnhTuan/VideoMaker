@@ -149,12 +149,12 @@ RIGHT (phiên âm chuẩn cho TTS):
 {
   "id": "outro",
   "layout": "outro",
-  "title": "Theo dõi kênh Tuấn Phạm",
+  "title": "Theo dõi kênh",
   "subtitle": "Xem bản tin công nghệ mới mỗi ngày",
   "narration": [
     {
-      "caption": "Theo dõi Tuấn Phạm để xem bản tin mới mỗi ngày.",
-      "text": "Theo dõi Tuấn Phạm để xem bản tin mới mỗi ngày."
+      "caption": "Theo dõi để xem bản tin mới mỗi ngày.",
+      "text": "Theo dõi để xem bản tin mới mỗi ngày."
     }
   ]
 }
