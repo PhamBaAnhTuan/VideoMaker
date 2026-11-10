@@ -35,12 +35,26 @@ def video_preview_width(width: int, height: int) -> int:
 
 def apply_theme():
     st.markdown("""<style>
-    .block-container {max-width: 1280px; padding-top: 2.4rem; padding-bottom: 3rem;}
-    [data-testid="stSidebar"] {border-right: 1px solid rgba(128,128,160,.16);}
-    [data-testid="stSidebar"] .block-container {padding-top: 1.5rem;}
-    h1 {letter-spacing: -.045em; font-weight: 800 !important;}
-    h2, h3 {letter-spacing: -.025em;}
-    [data-testid="stVerticalBlockBorderWrapper"] {border-radius: 18px;}
-    .stButton > button, .stDownloadButton > button, .stLinkButton > a {border-radius: 10px;}
-    [data-testid="stVideo"] video {max-height: 520px; border-radius: 16px; background: #0b1220;}
+    :root {--studio-accent:#a98251; --studio-ink:#262522; --studio-muted:#77736d;}
+    .stApp {font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;}
+    .block-container {max-width: 1380px; padding-top: 2rem; padding-bottom: 4rem;}
+    [data-testid="stSidebar"] {border-right: 1px solid rgba(120,112,98,.16);}
+    [data-testid="stSidebar"] .block-container {padding-top: 1.25rem;}
+    h1 {letter-spacing: -.055em; font-weight: 650 !important; line-height: 1.04 !important;}
+    h2, h3 {letter-spacing: -.035em; font-weight: 620 !important;}
+    [data-testid="stCaptionContainer"] {color: var(--studio-muted);}
+    [data-testid="stVerticalBlockBorderWrapper"] {border-radius: 14px; border-color: rgba(120,112,98,.2);}
+    [data-testid="stExpander"] {border-color: rgba(120,112,98,.2); border-radius: 12px;}
+    .stButton > button, .stDownloadButton > button, .stLinkButton > a {
+      border-radius: 9px; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+    .stButton > button:hover, .stDownloadButton > button:hover, .stLinkButton > a:hover {
+      transform: translateY(-1px); box-shadow: 0 5px 16px rgba(35,31,25,.09);
+    }
+    [data-testid="stVideo"] video {max-height: 520px; border-radius: 12px; background: #191919;}
+    [data-testid="stImage"] img {border-radius: 10px;}
+    hr {border-color: rgba(120,112,98,.18);}
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {transition-duration: .01ms !important; animation-duration: .01ms !important;}
+    }
     </style>""", unsafe_allow_html=True)

@@ -39,7 +39,9 @@ def add_render(parser):
     parser.add_argument("--size", default="9:16", help="9:16 | 16:9 | 1:1 | 4:5 | 1920x1080")
     parser.add_argument("--fps", type=int, default=24)
     parser.add_argument("--theme", choices=["dark","light"], default="dark")
-    parser.add_argument("--visual-style", choices=["studio", "neon", "editorial", "playful"], default="studio")
+    parser.add_argument("--visual-style",
+        choices=["studio", "neon", "editorial", "playful", "cyberpunk", "nature", "retro", "glass"],
+        default="studio")
     parser.add_argument("--no-subtitles", action="store_true")
     parser.add_argument("--no-sfx", action="store_true")
     parser.add_argument("--bgm", help="Nhạc nền trên máy")

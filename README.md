@@ -122,6 +122,14 @@ VIENEU_VOICE=Hải Đăng
 VIENEU_PRECISION=fp32
 ```
 
+Khi tải model, Hugging Face có thể cảnh báo đang truy cập ẩn danh. Đây không phải lỗi tải model; để tăng giới hạn tải và tốc độ, tạo **read token** tại [Hugging Face Access Tokens](https://huggingface.co/settings/tokens), rồi thêm vào `.env`:
+
+```dotenv
+HF_TOKEN=hf_your_read_token
+```
+
+Khởi động lại ứng dụng sau khi cập nhật `.env`. Không chia sẻ hoặc commit token; `.env` đã được bỏ qua khỏi Git. Không có token thì model vẫn có thể tải, nhưng Hugging Face áp dụng giới hạn cho truy cập ẩn danh.
+
 Máy yếu, chấp nhận chất lượng thấp hơn:
 
 ```dotenv

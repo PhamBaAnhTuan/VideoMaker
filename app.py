@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(override=True)
 
 from dataclasses import replace
 from datetime import datetime
@@ -116,17 +116,23 @@ if create:
             source = read_source(url=content.strip())
         else:
             source = read_source(text=content)
+        channel_clean = (channel or "").strip() or "Góc kiến thức"
+        print(f"\n[STUDIO UI] 🎬 Bắt đầu tạo kịch bản: kind={kind!r}, channel={channel_clean!r}, style={style!r}, skill={selected_skill_id!r}", flush=True)
         with st.spinner("AI đang viết và kiểm tra cấu trúc kịch bản…"):
             script = generate_script(source, mode="topic" if kind == "Chủ đề" else "source",
-                seconds=seconds, scene_count=scenes, channel=channel, style=style,
+                seconds=seconds, scene_count=scenes, channel=channel_clean, style=style,
                 source_label=content.strip() if kind == "URL" else (file.name if file else ""),
                 skill=selected_skill_id)
         st.session_state.script_editor = script.model_dump_json(indent=2)
         st.session_state.script_base = str(ROOT)
         st.session_state.pop("video_result", None)
         auto_build = auto
+        print(f"[STUDIO UI] ✨ Tạo kịch bản thành công! Đã nạp vào editor ({len(script.scenes)} cảnh).\n", flush=True)
     except Exception as exc:
-        st.error(str(exc))
+        import traceback
+        print(f"\n[STUDIO UI ERROR] ❌ Lỗi khi tạo kịch bản:", flush=True)
+        traceback.print_exc()
+        st.error(f"JSON chưa hợp lệ: {exc}" if "validation error" in str(exc).lower() else str(exc))
 
 with right:
     st.subheader("02 / Kịch bản")
@@ -159,9 +165,8 @@ st.subheader("03 / Phong cách hình ảnh")
 design, preview_col = st.columns([1, 1], gap="large")
 with design:
     visual_style = st.selectbox("Phong cách chuyển động", list(VISUAL_STYLES),
-        format_func=lambda x: VISUAL_STYLES[x][0])
-    st.caption(VISUAL_STYLES[visual_style][1])
-    st.caption("Hiệu ứng tự động theo phong cách. Có thể đặt animation và transition riêng cho từng cảnh trong JSON.")
+        format_func=lambda x: f"{VISUAL_STYLES[x][0]}  —  {VISUAL_STYLES[x][1]}")
+    st.caption("✨ Hiệu ứng tự động theo phong cách. Có thể đặt animation và transition riêng cho từng cảnh trong JSON.")
     with st.expander("Âm thanh & tùy chọn bổ sung"):
         subtitles = st.checkbox("Hiện phụ đề theo đoạn", True)
         sfx = st.checkbox("Âm chuyển cảnh nhẹ", True)
@@ -222,8 +227,12 @@ if render or auto_build:
                 source_dir=Path(st.session_state.get("script_base", str(ROOT))), progress=status.info)
         st.session_state.video_result = str(result)
         st.session_state.video_dimensions = (w, h)
+        print(f"[STUDIO UI] 🎬 Render video hoàn tất: {result}\n", flush=True)
         st.success("Video đã hoàn tất.")
     except Exception as exc:
+        import traceback
+        print(f"\n[STUDIO UI ERROR] ❌ Lỗi khi dựng video:", flush=True)
+        traceback.print_exc()
         st.session_state.pop("video_result", None)
         st.error(str(exc))
 

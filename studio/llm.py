@@ -4,7 +4,7 @@ import os
 from urllib.parse import urlparse
 
 DEFAULT_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai"
-DEFAULT_MODEL = "gemini-3.8-flash"
+DEFAULT_MODEL = "gemini-3.5-flash-lite"
 
 
 @dataclass(frozen=True)

@@ -24,9 +24,16 @@ class Comparison(StrictModel):
 class Scene(StrictModel):
     id: str = Field(pattern=r"^[a-zA-Z0-9_-]{1,40}$")
     layout: Literal["hook", "comparison", "stat-hero", "feature-list", "callout", "outro", "workflow", "quote"]
-    animation: Literal["auto", "fade", "slide", "spring", "wipe", "typewriter"] = "auto"
+    animation: Literal["auto", "fade", "slide", "spring", "wipe", "typewriter", "bounce", "glitch", "wave"] = "auto"
     transition: Literal["auto", "cut", "fade", "slide", "wipe"] = "auto"
     title: str = Field(min_length=1, max_length=90)
+
+    @field_validator("title", mode="before")
+    @classmethod
+    def validate_scene_title(cls, v):
+        if v is None or (isinstance(v, str) and not v.strip()):
+            return "Nội dung"
+        return str(v).strip()
     subtitle: str = Field(default="", max_length=160)
     bullets: list[str] = Field(default_factory=list, max_length=4)
     value: str = Field(default="", max_length=24)
@@ -60,6 +67,20 @@ class Script(StrictModel):
     source: str = Field(default="", max_length=500)
     scenes: list[Scene] = Field(min_length=1, max_length=20)
 
+    @field_validator("channel", mode="before")
+    @classmethod
+    def validate_channel(cls, v):
+        if v is None or (isinstance(v, str) and not v.strip()):
+            return "Góc kiến thức"
+        return str(v).strip()
+
+    @field_validator("title", mode="before")
+    @classmethod
+    def validate_title(cls, v):
+        if v is None or (isinstance(v, str) and not v.strip()):
+            return "Video"
+        return str(v).strip()
+
     @model_validator(mode="after")
     def unique_ids(self):
         if len({s.id for s in self.scenes}) != len(self.scenes):
@@ -92,7 +113,7 @@ class RenderOptions(StrictModel):
     height: int = Field(default=1280, ge=240, le=3840)
     fps: int = Field(default=24, ge=1, le=60)
     theme: Literal["dark", "light"] = "dark"
-    visual_style: Literal["studio", "neon", "editorial", "playful"] = "studio"
+    visual_style: Literal["studio", "neon", "editorial", "playful", "cyberpunk", "nature", "retro", "glass", "runway"] = "studio"
     subtitles: bool = True
     scene_gap: float = Field(default=0.3, ge=0, le=3)
     outro_hold: float = Field(default=1.5, ge=0, le=10)

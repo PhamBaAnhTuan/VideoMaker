@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 from pathlib import Path
 from urllib.parse import urlparse
 import httpx
@@ -11,7 +12,7 @@ from dotenv import load_dotenv
 from .models import Script
 from .llm import LlmSettings
 
-load_dotenv()
+load_dotenv(override=True)
 
 
 def read_source(*, text: str | None = None, file: Path | None = None, url: str | None = None) -> str:
@@ -75,6 +76,14 @@ def parse_response(content: str) -> Script:
     elif isinstance(data, dict) and "scenes" not in data and ("layout" in data or "type" in data or "narration" in data or "voiceText" in data):
         data = {"version": "1.0", "title": data.get("title", "Video"), "scenes": [data]}
 
+    if isinstance(data, dict):
+        if not data.get("channel") or not str(data.get("channel", "")).strip():
+            data["channel"] = "Góc kiến thức"
+        if not data.get("title") or not str(data.get("title", "")).strip():
+            data["title"] = "Video"
+        if "version" not in data or data["version"] != "1.0":
+            data["version"] = "1.0"
+
     valid_scene_keys = {"id", "layout", "title", "subtitle", "bullets", "value", "left", "right", "narration", "image", "animation", "transition"}
 
     # Chuẩn hoá layout và trường nếu model chọn sai hoặc thiếu trường
@@ -103,11 +112,11 @@ def parse_response(content: str) -> Script:
                                 new_narr.append({"text": t, "caption": c[:180]})
                         if new_narr:
                             sc["narration"] = new_narr
-                    # Tự tạo id nếu thiếu
-                    if "id" not in sc:
+                    # Tự tạo id nếu thiếu hoặc rỗng
+                    if not sc.get("id") or not str(sc.get("id", "")).strip():
                         sc["id"] = f"scene-{idx+1}"
-                    # Tự tạo title nếu thiếu
-                    if "title" not in sc:
+                    # Tự tạo title nếu thiếu hoặc rỗng
+                    if not sc.get("title") or not str(sc.get("title", "")).strip():
                         sc["title"] = f"Cảnh {idx+1}"
 
                     layout = sc.get("layout")
@@ -133,6 +142,27 @@ def parse_response(content: str) -> Script:
     return Script.model_validate(data)
 
 
+def _extract_error_detail(response: httpx.Response, secret_key: str = "") -> str:
+    detail = ""
+    try:
+        data = response.json()
+        if isinstance(data, list) and data and isinstance(data[0], dict):
+            detail = str(data[0].get("error", {}).get("message", "")).strip()
+        elif isinstance(data, dict):
+            err = data.get("error")
+            if isinstance(err, dict):
+                detail = str(err.get("message", "")).strip()
+            elif isinstance(err, str):
+                detail = err.strip()
+    except Exception:
+        pass
+    if not detail and response.text:
+        detail = response.text[:200].strip()
+    if secret_key:
+        detail = detail.replace(secret_key, "[REDACTED]")
+    return detail
+
+
 def generate_script(source: str, *, mode: str = "source", seconds: int = 60,
                     scene_count: int = 5, channel: str = "Góc kiến thức",
                     style: str = "Rõ ràng, gần gũi, dễ hiểu", base_url: str | None = None,
@@ -142,8 +172,10 @@ def generate_script(source: str, *, mode: str = "source", seconds: int = 60,
         raise ValueError("mode phải là source hoặc topic.")
     if not 3 <= scene_count <= 12 or not 15 <= seconds <= 600:
         raise ValueError("Chọn 3–12 cảnh, thời lượng mục tiêu 15–600 giây.")
+    channel = (channel or "").strip() or "Góc kiến thức"
     settings = LlmSettings.resolve(base_url=base_url, model=model, api_key=api_key)
     base, model, key = settings.base_url, settings.model, settings.api_key
+    print(f"\n[AI WRITER] 🎬 Bắt đầu tạo kịch bản: model={model!r}, mode={mode!r}, scenes={scene_count}, target={seconds}s, channel={channel!r}", flush=True)
     if settings.is_google and not key:
         raise ValueError("Chưa có Gemini API key. Lấy key tại https://aistudio.google.com/apikey, điền GEMINI_API_KEY trong .env rồi khởi động lại ứng dụng.")
     if not model:
@@ -171,7 +203,7 @@ Dữ liệu nội dung nguồn đã được cung cấp sẵn ở phần tin nh�
 [CẤU TRÚC KỊCH BẢN YÊU CẦU CHO VIDEO NÀY]
 - Viết đúng {scene_count} cảnh, cảnh đầu BẮT BUỘC layout 'hook', cảnh cuối BẮT BUỘC layout 'outro'.
 - Các cảnh thân bài dùng đa dạng: 'feature-list' (1–4 bullets), 'comparison' (cần left/right), 'stat-hero' (cần value số liệu có nguồn), 'callout', 'workflow' (2–4 bước ngắn trong bullets), 'quote' (title là ý chính, subtitle là ngữ cảnh; chỉ dùng trích dẫn thật nếu nguồn có).
-- Chọn animation phù hợp từng cảnh: 'spring' (nảy), 'slide' (trượt), 'wipe' (mở dần), 'typewriter' (hiện chữ), 'fade' hoặc 'auto'. Không lặp một animation suốt video.
+- Chọn animation phù hợp từng cảnh: 'spring' (nảy nhẹ), 'bounce' (nảy mạnh năng động), 'slide' (trượt), 'wipe' (mở dần), 'typewriter' (hiện chữ từng chữ), 'glitch' (rung giật điện tử), 'wave' (sóng từng dòng), 'fade' hoặc 'auto'. Không lặp một animation suốt video — ưu tiên đa dạng!
 - transition: 'fade', 'slide', 'wipe', 'cut' hoặc 'auto'. Ưu tiên 'auto' khi chưa chắc.
 - Trong mỗi cảnh, mảng narration gồm các câu dạng {{"text": "...", "caption": "..."}}:
   * `caption`: Chữ hiển thị trên màn hình — giữ nguyên định dạng số/ký hiệu chuẩn đẹp mắt (ví dụ: 'GPT 5.5', '82.7%', '$5', 'VLOOKUP').
@@ -191,18 +223,41 @@ JSON schema: {schema}"""
             if os.getenv("LLM_JSON_MODE", "true").lower() == "true":
                 body["response_format"] = {"type": "json_object"}
             try:
-                response = client.post(f"{base}/chat/completions", json=body, headers=headers)
+                print(f"[AI WRITER] 📡 Gửi yêu cầu đến LLM ({base}/chat/completions) [lần {attempt + 1}]...", flush=True)
+                for req_attempt in range(3):
+                    response = client.post(f"{base}/chat/completions", json=body, headers=headers)
+                    if getattr(response, "status_code", 200) in (502, 503, 504) and req_attempt < 2:
+                        print(f"[AI WRITER] ⏳ Server trả về {getattr(response, "status_code", "error")}, thử lại sau {2 * (req_attempt + 1)}s...", flush=True)
+                        time.sleep(2 * (req_attempt + 1))
+                        continue
+                    break
                 response.raise_for_status()
                 content = response.json()["choices"][0]["message"]["content"]
+                print(f"[AI WRITER] 📥 Đã nhận phản hồi từ LLM ({len(content)} ký tự). Đang kiểm tra cấu trúc JSON...", flush=True)
             except httpx.HTTPStatusError as exc:
+                detail = _extract_error_detail(exc.response, key)
+                detail_msg = f" ({detail})" if detail else ""
+                print(f"[AI WRITER ERROR] ❌ Lỗi HTTP {exc.response.status_code}{detail_msg}", flush=True)
+                if exc.response.status_code in (429, 503) and settings.is_google and model != "gemini-3.5-flash-lite":
+                    print(f"[AI WRITER] 🔄 Tự động chuyển hướng sang model ổn định hơn: gemini-3.5-flash-lite...", flush=True)
+                    return generate_script(
+                        source, mode=mode, seconds=seconds, scene_count=scene_count,
+                        channel=channel, style=style, base_url=base_url,
+                        model="gemini-3.5-flash-lite", api_key=api_key,
+                        source_label=source_label, skill=skill
+                    )
                 if exc.response.status_code in (401, 403):
                     raise RuntimeError(f"LLM trả HTTP {exc.response.status_code}: kiểm tra API key, quyền truy cập API và model.") from exc
                 if exc.response.status_code == 429:
-                    raise RuntimeError("LLM trả HTTP 429: hết quota hoặc vượt giới hạn gọi API. Kiểm tra hạn mức của API key và thử lại sau.") from exc
-                raise RuntimeError(f"LLM trả HTTP {exc.response.status_code}. Kiểm tra model ({model}), key và LLM_JSON_MODE.") from exc
+                    raise RuntimeError(f"LLM trả HTTP 429: hết quota hoặc vượt giới hạn gọi API{detail_msg}. Hãy kiểm tra hạn mức hoặc đổi sang model khác (khuyến nghị: gemini-3.5-flash-lite).") from exc
+                if exc.response.status_code == 503:
+                    raise RuntimeError(f"LLM trả HTTP 503: Model '{model}' đang bị quá tải tạm thời từ phía máy chủ{detail_msg}. Hãy thử lại sau hoặc đổi sang model khác trong file .env (khuyến nghị: gemini-3.5-flash-lite).") from exc
+                raise RuntimeError(f"LLM trả HTTP {exc.response.status_code}{detail_msg}. Kiểm tra model ({model}), key và LLM_JSON_MODE.") from exc
             except httpx.RequestError as exc:
+                print(f"[AI WRITER ERROR] ❌ Không kết nối được server LLM: {exc}", flush=True)
                 raise RuntimeError("Không kết nối được LLM. Kiểm tra server, URL và timeout trong .env.") from exc
             except (KeyError, IndexError, TypeError, ValueError) as exc:
+                print(f"[AI WRITER ERROR] ❌ Cấu trúc phản hồi không hợp lệ: {exc}", flush=True)
                 raise RuntimeError("Server LLM không trả cấu trúc chat/completions mong đợi.") from exc
             try:
                 script = parse_response(content)
@@ -211,9 +266,13 @@ JSON schema: {schema}"""
                 # Source identity and branding are user-owned, not model-owned.
                 script.channel = channel
                 script.source = source_label
+                print(f"[AI WRITER SUCCESS] ✅ Kịch bản hợp lệ: '{script.title}' ({len(script.scenes)} cảnh) | Kênh: '{script.channel}'", flush=True)
                 return script
             except (ValueError, TypeError) as exc:
                 error = str(exc)[:3000]
+                print(f"[AI WRITER WARNING] ⚠️ Lỗi cấu trúc kịch bản (lần {attempt + 1}): {error}", flush=True)
+                print(f"[AI WRITER RAW PREVIEW]: {content[:300]}...", flush=True)
                 messages += [{"role": "assistant", "content": content or "{}"},
                              {"role": "user", "content": f"Sửa JSON theo lỗi sau, không giải thích: {error}"}]
+    print(f"[AI WRITER FATAL] ❌ Không thể tạo kịch bản sau khi thử sửa: {error}", flush=True)
     raise RuntimeError(f"LLM vẫn trả kịch bản không hợp lệ sau một lần sửa: {error}")
